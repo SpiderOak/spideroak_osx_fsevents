@@ -1,1 +1,61 @@
 spideroak_osx_fsevents
+
+This program is what we at SpiderOak call a 'dir watcher'. It uses The OSX fsevents API to get low level notification of changes in the filesystem. We have other dir watchers for Windows (spideroak_windows_dir_watcher) and Linux (spideroak_inotify_dir_watcher).
+
+The goals of the dir watchers are:
+* To recognize filesystem events in an efficient way
+* To have a small footprint: using as little memory and processor time as possible
+* To be robust 
+ 
+So these dir watchers are very simple programs, keeping the complication in the Python program which uses them. 
+
+This program is launched by the SpiderOak back end program (the 'spider'). It reads a configuration file listing directories to by watched. And it reads an 'exclude' file (which may be empty) listing directories to be ignored. When it detects an event (or events), it writes a simple notification file to a specified directory.
+
+To build the executable you can use build.sh.
+
+We have included the python program launch_watcher.py for your convenience in testing. It launches the watcher the same way our spider program does.
+
+Here's a sample test run:
+
+The config file is test_fsevents.config. It contains a single line:
+
+    /Users/Dougfort/Desktop
+
+The exclude file is empty (created with touch)
+
+The notification directory is ~/notification
+
+The test is run like this:
+
+python launch_watcher.py \
+    /Users/Dougfort/spideroak_osx_fsevents/spideroak_osx_fsevents \ 
+    /Users/Dougfort/test_fsevents.config \
+    /Users/Dougfort/test_fsevents.exclude \
+    /Users/Dougfort/notification
+
+Note the use of full path names, this is the way the spider runs it.
+
+When I remove a file from the desktop, we see some events:
+
+$ ls ~/notification/
+00000001.txt	00000002.txt
+
+$ cat ~/notification/00000001.txt 
+/Users/dougfort/Desktop/
+
+$ cat ~/notification/00000002.txt 
+/Users/dougfort/Desktop/
+
+Note that the notification is simply the directory where the event occurred. Also note the dupliicate notification. Our goal is to keep the dir watcher as simple as possible. Of course, this is open source, if you want something more complicated go for it. (Please see our LICENSE).
+
+The dir watcher reports errors and events to the system log. You can grep for the tag 'SpiderOak'.
+
+$ tail /var/log/system.log
+May 29 13:14:54 douglas-forts-powerbook-g4-30 SpiderOak FSEvents[633]: Notification change 45213672 in /Users/dougfort/Desktop/, flags 0
+May 29 13:14:57 douglas-forts-powerbook-g4-30 SpiderOak FSEvents[633]: Notification change 45213701 in /Users/dougfort/Desktop/, flags 0
+
+This is part of SpiderOak
+http://SpiderOak.com
+
+contact us at ___@spideroak.com
+
