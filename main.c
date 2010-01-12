@@ -37,6 +37,11 @@ static void load_paths_to_exclude(
 );
 static void handleTERM(int signo);
 static FILE * open_temp_file(const char * path);
+static FILE * open_error_file();
+
+
+static PATH_NAME  error_path;
+static FILE *     error_file = NULL;
 
 //-----------------------------------------------------------------------------
 void timer_callback(CFRunLoopTimerRef timer, void *info) {
@@ -55,12 +60,32 @@ FILE * open_temp_file(const char * temp_path) {
         syslog(LOG_ERR, "Failed to open %s: (%d) %s", 
             temp_path, errno, strerror(errno)
         );
+        error_file = open_error_file();
+        fprintf(error_file, "Failed to open %s: (%d) %s\n", 
+            temp_path, errno, strerror(errno)
+        );
+        fclose(error_file);
         exit(-1);
     }
 
     return file;
     
 } // open_temp_file
+
+//-----------------------------------------------------------------------------
+FILE * open_error_file() {
+//-----------------------------------------------------------------------------
+    FILE * file = fopen(error_path, "w");
+    if (NULL == file) {
+        syslog(LOG_ERR, "Failed to open %s: (%d) %s", 
+            error_path, errno, strerror(errno)
+        );
+        exit(-2);
+    }
+
+    return file;
+    
+} // open_error_file
 
 //-----------------------------------------------------------------------------
 void fsevent_callback ( 
@@ -116,7 +141,12 @@ void fsevent_callback (
                 syslog(LOG_ERR, "fprintf failed %s: (%d) %s", 
                     temp_path_buffer, errno, strerror(errno)
                 );
-                exit(-1);
+                error_file = open_error_file();
+                fprintf(error_file, "fprintf failed %s: (%d) %s\n", 
+                    temp_path_buffer, errno, strerror(errno)
+                );
+                fclose(error_file);
+                exit(-3);
             }
             valid_events++;
         }
@@ -140,7 +170,15 @@ void fsevent_callback (
                 errno,
                 strerror(errno)
             );
-            exit(-1); 
+            error_file = open_error_file();
+            fprintf(error_file, "fsevent_callback rename failed %s %s (%d) %s\n",
+                temp_path_buffer,
+                notification_path_buffer,
+                errno,
+                strerror(errno)
+            );
+            fclose(error_file);
+            exit(-4); 
         }
     }
 
@@ -155,7 +193,12 @@ CFArrayRef load_paths_to_watch(const char * file_path) {
         syslog(LOG_ERR, "Failed to open %s: (%d) %s", 
             file_path, errno, strerror(errno)
         );
-        exit(-1);
+        error_file = open_error_file();
+        fprintf(error_file, "Failed to open %s: (%d) %s\n", 
+            file_path, errno, strerror(errno)
+        );
+        fclose(error_file);
+        exit(-5);
     }
     
     PATH_NAME path_buffer;
@@ -165,14 +208,22 @@ CFArrayRef load_paths_to_watch(const char * file_path) {
     while (1) {
         if (path_index >= MAX_PATHS_TO_WATCH) {
             syslog(LOG_ERR, "Too many paths");
-            exit(-1);
+            error_file = open_error_file();
+            fprintf(error_file, "Too many paths\n"); 
+            fclose(error_file);
+            exit(-6);
         }
         fgets(path_buffer, MAXPATHLEN+1, file);
         if (ferror(file)) {
             syslog(LOG_ERR, "Error reading %s: (%d) %s", 
                 file_path, errno, strerror(errno)
             );
-            exit(-1);
+            error_file = open_error_file();
+            fprintf(error_file, "Error reading %s: (%d) %s\n", 
+                file_path, errno, strerror(errno)
+            );
+            fclose(error_file);
+            exit(-7);
         }
         if (feof(file)) {
             // otherwise EOF
@@ -204,7 +255,15 @@ CFArrayRef load_paths_to_watch(const char * file_path) {
     ); 
     if (NULL == paths_to_watch) {
         syslog(LOG_ERR, "load_paths_to_array: CFArrayCreate failed");
-        exit(-1); 
+        error_file = open_error_file();
+        fprintf(
+            error_file, 
+            "load_paths_to_array: CFArrayCreate failed: (%d) %s\n",
+            errno, 
+            strerror(errno)
+        );
+        fclose(error_file);
+        exit(-8); 
     }
     
     return paths_to_watch;
@@ -220,20 +279,33 @@ void load_paths_to_exclude(FSEVENT_INFO_P info_p, const char * file_path) {
         syslog(LOG_ERR, "Failed to open %s: (%d) %s", 
             file_path, errno, strerror(errno)
         );
-        exit(-1);
+        error_file = open_error_file();
+        fprintf(error_file, "Failed to open %s: (%d) %s\n", 
+            file_path, errno, strerror(errno)
+        );
+        fclose(error_file);
+        exit(-9);
     }
     
     while (1) {
         if (info_p->exclude_len >= MAX_PATHS_TO_EXCLUDE) {
             syslog(LOG_ERR, "Too many exclude paths");
-            exit(-1);
+            error_file = open_error_file();
+            fprintf(error_file, "Too many exclude paths\n");
+            fclose(error_file);
+            exit(-10);
         }
         fgets(info_p->exclude[info_p->exclude_len], MAXPATHLEN, file);
         if (ferror(file)) {
             syslog(LOG_ERR, "Error reading %s: (%d) %s", 
                 file_path, errno, strerror(errno)
             );
-            exit(-1);
+            error_file = open_error_file();
+            fprintf(error_file, "Error reading %s: (%d) %s\n", 
+                file_path, errno, strerror(errno)
+            );
+            fclose(error_file);
+            exit(-11);
         }
         if (feof(file)) {
             // otherwise EOF
@@ -290,6 +362,11 @@ int main (int argc, const char * argv[]) {
     FSEVENT_CALLBACK_INFO callback_info;
     bzero(&callback_info, sizeof callback_info);
     strncpy(callback_info.notification_path, argv[4], MAX_PATH_NAME_LENGTH);
+    sprintf(
+        error_path, 
+        "%s/error.txt", 
+        callback_info.notification_path
+    );
     load_paths_to_exclude(&callback_info, argv[3]);    
     
     FSEventStreamContext context;
@@ -320,9 +397,14 @@ int main (int argc, const char * argv[]) {
     Boolean result = FSEventStreamStart(stream);
     if (!result) {
         syslog(LOG_ERR, "FSEventStreamStart failed");
+        error_file = open_error_file();
+        fprintf(error_file, "FSEventStreamStart failed: (%d) %s\n", 
+            errno, strerror(errno)
+        );
+        fclose(error_file);
         FSEventStreamInvalidate(stream);
         FSEventStreamRelease(stream);
-        return -1;
+        return -12;
     }
 
     CFRunLoopTimerRef timer = CFRunLoopTimerCreate(
