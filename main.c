@@ -108,12 +108,16 @@ void fsevent_callback (
 
     int valid_events = 0;
     for (i=0; i<numEvents; i++) { 
+
+        #if defined(DEBUG) 
+        /* Ticket #1225: users have complained that this is too verbose */
         /* flags are unsigned long, IDs are uint64_t */ 
         syslog(LOG_NOTICE, "Notification change %llu in %s, flags %lu\n",
             eventIds[i], 
             eventPaths[i], 
             eventFlags[i]
-        ); 
+        );
+        #endif
         
         // check for excluded path
         bool exclude = false;
