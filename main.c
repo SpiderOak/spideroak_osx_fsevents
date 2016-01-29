@@ -365,7 +365,7 @@ void handleTERM(int signo) {
 //-----------------------------------------------------------------------------
 int main (int argc, const char * argv[]) {
 //-----------------------------------------------------------------------------
-    openlog("SpiderOak FSEvents", LOG_NDELAY | LOG_CONS, LOG_DAEMON);
+    //openlog("SpiderOak FSEvents", LOG_NDELAY | LOG_CONS, LOG_DAEMON);
     //syslog(LOG_NOTICE, "Program starts");
     
     // expecting: argv[0] is executable
@@ -381,12 +381,6 @@ int main (int argc, const char * argv[]) {
     // we don't use argv[1], because we can call getppid(). We have to 
     // accept it because the windows fsevents program needs it.
     
-    CFArrayRef paths_to_watch = load_paths_to_watch(argv[2]);
-    if (0 == CFArrayGetCount(paths_to_watch)) {
-        // syslog(LOG_NOTICE, "Program terminates: no paths to watch");
-        return 0;
-    }    
-    
     FSEVENT_CALLBACK_INFO callback_info;
     bzero(&callback_info, sizeof callback_info);
     strncpy(callback_info.notification_path, argv[4], MAX_PATH_NAME_LENGTH);
@@ -395,6 +389,13 @@ int main (int argc, const char * argv[]) {
         "%s/error.txt", 
         callback_info.notification_path
     );
+
+    CFArrayRef paths_to_watch = load_paths_to_watch(argv[2]);
+    if (0 == CFArrayGetCount(paths_to_watch)) {
+        // syslog(LOG_NOTICE, "Program terminates: no paths to watch");
+        return 0;
+    }    
+    
     load_paths_to_exclude(&callback_info, argv[3]);    
     
     FSEventStreamContext context;

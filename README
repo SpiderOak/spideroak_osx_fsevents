@@ -11,7 +11,11 @@ So these dir watchers are very simple programs, keeping the complication in the 
 
 This program is launched by the SpiderOak back end program (the 'spider'). It reads a configuration file listing directories to by watched. And it reads an 'exclude' file (which may be empty) listing directories to be ignored. When it detects an event (or events), it writes a simple notification file to a specified directory.
 
-To build the executable you can use build.sh.
+To build the executable, run:
+
+```
+xcodebuild ARCHS=x86_64 ONLY_ACTIVE_ARCH=NO -sdk macosx10.11 -project spideroak_osx_fsevents.xcodeproj
+```
 
 We have included the python program launch_watcher.py for your convenience in testing. It launches the watcher the same way our spider program does.
 

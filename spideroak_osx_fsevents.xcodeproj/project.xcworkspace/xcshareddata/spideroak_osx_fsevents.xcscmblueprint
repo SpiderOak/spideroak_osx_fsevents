@@ -1,0 +1,30 @@
+{
+  "DVTSourceControlWorkspaceBlueprintPrimaryRemoteRepositoryKey" : "84A2D7DE96745DC3FA08B0232514D71011549758",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyRepositoryLocationsKey" : {
+
+  },
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
+    "84A2D7DE96745DC3FA08B0232514D71011549758" : 0,
+    "B7CC0F0D93D77E773DB4B88853879984760B02CC" : 0
+  },
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "065CEC58-D98B-46B3-A80C-2E93F879AF49",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
+    "84A2D7DE96745DC3FA08B0232514D71011549758" : "spideroak_osx_fsevents\/",
+    "B7CC0F0D93D77E773DB4B88853879984760B02CC" : "desktop-client\/"
+  },
+  "DVTSourceControlWorkspaceBlueprintNameKey" : "spideroak_osx_fsevents",
+  "DVTSourceControlWorkspaceBlueprintVersion" : 204,
+  "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "spideroak_osx_fsevents.xcodeproj",
+  "DVTSourceControlWorkspaceBlueprintRemoteRepositoriesKey" : [
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "github.com:SpiderOak\/spideroak_osx_fsevents.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "84A2D7DE96745DC3FA08B0232514D71011549758"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "ssh:\/\/treehouse.spideroak.com:7999\/~matt\/desktop-client.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "B7CC0F0D93D77E773DB4B88853879984760B02CC"
+    }
+  ]
+}
